@@ -31,6 +31,23 @@ def mark_horizontal (y, start, range)
     end 
 end
 
+def mark_diagonal (coords)
+    startx = coords[0][0]
+    starty  = coords[0][1]
+    rangex = coords[1][0] - coords[0][0]
+    if coords[1][1] > coords[0][1]
+        rangey = coords[1][1] - coords[0][1]
+        (rangex += 1).times do |i|
+            @plot_hash[[startx+i,starty+i]] += 1
+        end
+    else
+        rangey = coords[0][1] - coords[1][1]
+        (rangex += 1).times do |i|
+            @plot_hash[[startx+i,starty-i]] += 1
+        end
+    end
+end
+
 # mark the grid
 clean_array.each do |input|
     if input[0][0] == input[1][0] #vertical
@@ -45,8 +62,15 @@ clean_array.each do |input|
         else
             mark_horizontal(input[0][1],input[0][0], input[1][0]-input[0][0])
         end
+    else
+        if input[0][0] < input[1][0]
+            mark_diagonal(input)
+        else
+            mark_diagonal([input[1],input[0]])
+        end
     end
 end
+
 
 # count overlaps
 overlaps = 0
@@ -56,4 +80,6 @@ overlaps = 0
     end
 end
 
-print overlaps
+#print @plot_hash
+
+print overlaps  
