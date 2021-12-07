@@ -7,6 +7,10 @@ def solve(days)
 
   input.tally.each do |k, v|
     ocean[k] = v
+    print k
+    puts " "
+    print v
+    puts " "
   end
 
   days.times do
