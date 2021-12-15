@@ -1,3 +1,4 @@
+require 'Benchmark'
 
 def count_fish(days)
     input_file = File.read("data/input_day6.txt")
@@ -7,8 +8,6 @@ def count_fish(days)
     fish_array = input_file.split(",").map(&:to_i)
 
     days.times do |i|
-        print "Day " + i.to_s
-        puts " "
         new_array = []
         new_fish = 0
         fish_array.length.times do |fish|
@@ -30,6 +29,4 @@ def count_fish(days)
     return fish_array.count.to_s
 end
 
-print "Part 1:" + count_fish(80)
-puts " "
-print "Part 2:" + count_fish(256)
+puts Benchmark.measure {count_fish(80)}
