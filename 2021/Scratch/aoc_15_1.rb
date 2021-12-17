@@ -4,6 +4,8 @@ costs = Hash.new
 @start_vertex = [0,0]
 @end_vertex = [3,3]
 @grid = []
+@next_steps = []
+
 
 DATA.readlines.each do |line| 
     row = []
@@ -26,12 +28,15 @@ def find_next_nodes(x,y)
     return neighbours
 end
 
-find_next_nodes(0,0).each do |cost|
-    p @grid[cost[0]][cost[1]]
-    costs[cost] = @grid[cost[0]][cost[1]]
+2.times do
+    find_next_nodes(x=0,y=0).each do |cost|
+        costs[cost] = [@grid[cost[0]][cost[1]],[x,y]]
+        find_next_nodes(cost[0],cost[1])
+    end
 end
 
 print costs 
+
 __END__
 1163
 1381
