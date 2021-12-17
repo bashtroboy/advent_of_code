@@ -1,3 +1,5 @@
+
+
 row = 0
 grid = []
 @lowPointsHash = Hash.new
