@@ -13,7 +13,6 @@ transmission.each_char do |ch|
 end
 
 def process(bits)
-
     version = 0
     type = 0
     version = bits[0..2].to_i(2)
@@ -29,7 +28,7 @@ def process(bits)
         
         while last_char == false do
             bits[0] == "0" ? last_char = true : nil
-            literal += bits[1..4]
+            literal += bits[0..4]
             bits.slice!(0..4)
         end
         @literals << literal
@@ -53,11 +52,18 @@ def process(bits)
             end
         end
     end
+            # trim remaining zeroes
+            while @bits[0] == "0" do
+                @bits.slice!(0)
+            end
 end
 
 process(@bits)
 
 while @sub_packets.count > 0
+    p @sub_packets
+    puts
+=begin
     clean_sub_array = []
     @sub_packets.each do |sub|
         unless sub == "" || @sub_packets[0].match(/[1]/) == nil
@@ -71,6 +77,15 @@ while @sub_packets.count > 0
             process(new_sub)   
         end
     end
+=end
+
+@sub_packets.each do |new_sub|
+    p new_sub
+    puts
+    unless new_sub == "" || new_sub == nil
+        process(new_sub)   
+    end
+end
 end
 
 print @versions.sum

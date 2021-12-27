@@ -28,7 +28,7 @@ def parse_sub_packet(bitz)
         
         while last_char == false do
             bitz[0] == "0" ? last_char = true : nil
-            literal += bitz[1..4]
+            literal += bitz[0..4]
             bitz.slice!(0..4)
         end
     else # operator sub-packet

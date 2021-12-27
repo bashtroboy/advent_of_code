@@ -1,46 +1,128 @@
 
-lines = File.open('data/input_day12.txt', 'r') { |f| f.readlines }.map { |l| l.chomp.split('-').map(&:to_sym) }
-
-# if two nodes are connected, they will appear in each other's entry.
-# e.g. A -- B -- C => { :a => [:b], :b => [:a, :c], :c => [:b] }
-nodes = {}
-lines.each do |a, b|
-  nodes[a] ||= []
-  nodes[a] << b
-  nodes[b] ||= []
-  nodes[b] << a 
-  print nodes
-  puts
+def parse_input(string)
+  string.each_line(chomp: true)
+end
+def tokenize(string)
+  string.scan(/\[|\]|\d+|,/).map { _1.match?(/^\d+$/) ? _1.to_i : _1 }
 end
 
-# Recursively (depth-first) search for valid paths. Allows for one lowercase node to be visited twice.
-# @param current The node to start from.
-# @param dest    The destination node.
-# @param nodes   The list of nodes. (couldn't find a better way to do this ::shrug::)
-# @param duplicate_node The one node that is allowed to be visited twice.
-# @return Array<Array<Symbol>>  The paths, each represented by an array of symbols.
-def find_paths(current, dest, nodes, duplicate_node=nil, visited_points=[], all_paths=[])
-  # base condition: if the current node is what we want, just stop here.
-  return all_paths << visited_points + [dest] if current == dest
-  # otherwise, path from each connected node to the destination.
-  nodes[current].each do |node|
-    # ...except if the node is invalid (lowercase node that's already been visited)
-    if visited_points.include?(node) && node.downcase == node
-      next unless node == duplicate_node && visited_points.count(node) == 1
+def explode(string)
+  tokens = tokenize(string)
+  nesting = 0
+
+  tokens.length.times do |index|
+    case tokens[index]
+    when '['
+      nesting += 1
+      if nesting > 4
+        # explode here!
+
+        # pair is the following tokens, starting at this index: [ digit , digit ]
+        left = tokens[index + 1]
+        right = tokens[index + 3]
+        tokens[index, 5] = 0
+
+        # find index to the left to add to
+        (index - 1).downto(0) do |left_index|
+          if tokens[left_index].is_a?(Integer)
+            tokens[left_index] += left
+            break
+          end
+        end
+
+        # find index to the right to add to
+        (index + 1).upto(tokens.length - 1) do |right_index|
+          if tokens[right_index].is_a?(Integer)
+            tokens[right_index] += right
+            break
+          end
+        end
+
+        break
+      end
+    when ']'
+      nesting -= 1
     end
-    find_paths(node, dest, nodes, duplicate_node, visited_points + [current], all_paths)
-  end  
-  return all_paths
+  end
+
+  tokens.join
+end
+def split(string)
+  tokens = tokenize(string)
+
+  tokens.length.times do |index|
+    element = tokens[index]
+    if element.is_a?(Integer) && element >= 10
+      # split here!
+      tokens[index, 1] = tokenize(add(
+        (element / 2.0).floor,
+        (element / 2.0).ceil,
+      ))
+      break
+    end
+  end
+
+  tokens.join
 end
 
-# part 1
-p find_paths(:start, :end, nodes).size
-
-=begin
-# part 2
-paths = []
-nodes.keys.select { |node| node.downcase == node && ![:start, :end].include?(node)}.each do |duplicate_node|
-  paths += find_paths(:start, :end, nodes, duplicate_node)
+def add(left, right)
+  "[#{left},#{right}]"
 end
-p paths.uniq.size
-=end
+
+def reduce(number)
+  prev = nil
+
+  until prev == number
+    prev = number
+    exploded_number = explode(number)
+    number = if exploded_number == number
+      split(number)
+    else
+      exploded_number
+    end
+  end
+
+  number
+end
+
+def sum_list(numbers)
+  numbers.inject do |left, right|
+    reduce(add(left, right))
+  end
+end
+
+def magnitude(number)
+  # To check whether it's the right answer, the snailfish teacher only checks
+  # the magnitude of the final sum. The magnitude of a pair is 3 times the
+  # magnitude of its left element plus 2 times the magnitude of its right
+  # element. The magnitude of a regular number is just that number.
+
+  number = number.dup # cause of frozen strings
+
+  until number =~ /^\d+$/
+    m = number.match(/\[(?<left>\d+),(?<right>\d+)\]/)
+    index = m.begin(0)
+    length = m[0].length
+    left = m[:left].to_i
+    right = m[:right].to_i
+
+    number[index, length] = (3 * left + 2 * right).to_s
+  end
+
+  number.to_i
+end
+
+def part1(numbers)
+  magnitude(sum_list(numbers))
+end
+
+def part2(numbers)
+  # What is the largest magnitude you can get from adding only two of the snailfish numbers?
+
+  numbers.to_a.permutation(2).map { magnitude(sum_list(_1)) }.max
+end
+
+
+  input = parse_input(File.read('input_day18.txt'))
+  puts "Part 1: #{part1(input)}"
+  puts "Part 2: #{part2(input)}" rescue nil
